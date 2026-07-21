@@ -1,0 +1,10 @@
+{
+	"dependencies": {
+		"@nestjs-modules/mailer": "^2.3.7",
+		"nodemailer": "^9.0.3",
+		"uuid": "^14.0.1"
+	},
+	"devDependencies": {
+		"@types/uuid": "^11.0.0"
+	}
+}
