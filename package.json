@@ -7,7 +7,6 @@
 		"@nestjs/passport": "^11.0.5",
 		"date-fns": "^4.4.0",
 		"mongoose": "^9.10.0",
-		"nestjs-object-id": "^4.0.4",
 		"nodemailer": "^9.0.3",
 		"passport": "^0.7.0",
 		"passport-jwt": "^4.0.1",
