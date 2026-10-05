@@ -1,0 +1,16 @@
+{
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "rootDir": ".",
+  "roots": ["<rootDir>", "<rootDir>/../__tests__"],
+  "testEnvironment": "node",
+  "testRegex": "\\.e2e[-.]spec\\.ts$",
+  "transform": {
+    "^.+\\.(t|j)s$": "ts-jest"
+  },
+  "transformIgnorePatterns": [
+    "node_modules/(?!(@nestjs/jwt|@nestjs/passport|@nestjs/config|@nestjs-modules/mailer|@nestjs/swagger|uuid|date-fns|passport|passport-jwt|passport-local|mongoose|bcrypt)/)"
+  ],
+  "moduleNameMapper": {
+    "^src/(.*)$": "<rootDir>/../src/$1"
+  }
+}
