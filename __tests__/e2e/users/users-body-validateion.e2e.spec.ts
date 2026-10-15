@@ -1,16 +1,13 @@
-import {HttpStatus, INestApplication, ValidationPipe} from "@nestjs/common";
+import {HttpStatus, INestApplication} from "@nestjs/common";
 import {generateBasicAuthToken} from "../../utils/auth-utils";
-import {Test, TestingModule} from "@nestjs/testing";
-import {AppModule} from "../../../src/app.module";
 import {USERS_PATH} from "../../../src/core/paths/paths";
 import request from "supertest";
 import {createUser} from "../../utils/users/create-user";
-import {getConnectionToken} from "@nestjs/mongoose";
-import {pipesSetup} from "../../../src/setup/pipes.setup";
+import {clearDatabase, initApp} from "../../helpers/app-helper";
 
 describe('AppController (e2e),body validation tests', () => {
     let app: INestApplication;
-    let moduleFixture: TestingModule | undefined;
+
     const adminAuthToken: string = generateBasicAuthToken();
     const correctTestUserData = {
         login: 'new login',
@@ -18,19 +15,10 @@ describe('AppController (e2e),body validation tests', () => {
         email: 'email@email.com',
     }
     beforeAll(async () => {
-        moduleFixture = await Test.createTestingModule({
-            imports: [AppModule],
-        }).compile();
-        app = moduleFixture.createNestApplication();
-        pipesSetup(app);
-        await app.init();
+       app = await initApp();
     });
     beforeEach(async () => {
-        const connection = moduleFixture!.get(getConnectionToken());
-        const collections = connection.collections;
-        for (const key in collections) {
-            await collections[key].deleteMany({});
-        }
+        await clearDatabase(app);
     });
     it("should not create a user with incorrect body passed; POST /users", async () => {
         await request(app.getHttpServer())

@@ -1,22 +1,19 @@
-import {HttpStatus, INestApplication, ValidationPipe} from "@nestjs/common";
+import {HttpStatus, INestApplication} from "@nestjs/common";
 import {CreateBlogInputDto} from "../../../src/modules/bloggers-platform/blogs/api/input-dto/blogs.input-dto";
 import {
     CreatePostForBlogInputDto
 } from "../../../src/modules/bloggers-platform/posts/api/input-dto/create-post-for-blog.input-dto";
 import {generateBasicAuthToken} from "../../utils/auth-utils";
-import {Test, TestingModule} from "@nestjs/testing";
-import {AppModule} from "../../../src/app.module";
 import request from "supertest";
 import {POSTS_PATH} from "../../../src/core/paths/paths";
 import {createBlog} from "../../utils/blogs/create-blog";
 import {createPost} from "../../utils/posts/create-post";
 import {getPostById} from "../../utils/posts/get-post-by-id";
-import {getConnectionToken} from "@nestjs/mongoose";
-import {pipesSetup} from "../../../src/setup/pipes.setup";
+import {clearDatabase, initApp} from "../../helpers/app-helper";
 
 describe('AppController (e2e),body validation tests', () => {
     let app: INestApplication;
-    let moduleFixture: TestingModule | undefined;
+
     const testBlogData: CreateBlogInputDto = {
         name: 'new blog',
         description: 'description',
@@ -29,19 +26,10 @@ describe('AppController (e2e),body validation tests', () => {
     };
     const adminToken: string = generateBasicAuthToken();
     beforeAll(async () => {
-        moduleFixture = await Test.createTestingModule({
-            imports: [AppModule],
-        }).compile();
-        app = moduleFixture.createNestApplication();
-        pipesSetup(app);
-        await app.init();
+        app = await initApp();
     });
     beforeEach(async () => {
-        const connection = moduleFixture!.get(getConnectionToken());
-        const collections = connection.collections;
-        for (const key in collections) {
-            await collections[key].deleteMany({});
-        }
+        await clearDatabase(app);
     });
     it('should not create post when incorrect body passed; POST /posts', async () => {
         await request(app.getHttpServer())

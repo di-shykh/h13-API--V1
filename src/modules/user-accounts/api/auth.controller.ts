@@ -6,7 +6,9 @@ import {
     Get,
     HttpCode,
     HttpStatus,
+    Res
 } from '@nestjs/common';
+import type { Response } from 'express';
 import {UsersService} from "../application/users-service";
 import {AuthService} from "../application/auth.service";
 import {CreateUserInputDto} from "./input-dto/users.input-dto";
@@ -20,6 +22,7 @@ import {AuthQueryRepository} from "../infrastructure/query/auth.query-repository
 import {RateLimitGuard} from "../guards/rate-limit/rate-limit.guard";
 import {UpdateUserInputDto} from "./input-dto/update-user.input-dto";
 import {ConfirmationCodeInputDto} from "../dto/confirmation-code.input-dto";
+import {NewPasswordInputDto} from "./input-dto/new-password.input-dto";
 
 @Controller('auth')
 export class AuthController {
@@ -48,17 +51,24 @@ export class AuthController {
             },
         },
     })
-    login(
+    async login(
         @ExtractUserFromRequest() user: UserContextDto,
+        @Res({ passthrough: true }) res: Response, // <-- 1. Добавляем объект ответа с passthrough: true
     ): Promise<{accessToken: string}> {
-        return this.authService.login(user.id);
+        const { accessToken, refreshToken } = await this.authService.login(user.userId);
+        res.cookie('refreshToken', refreshToken,
+            {
+                httpOnly: true,
+                secure: true,
+            });
+        return { accessToken };
     }
 
     @ApiBearerAuth()
     @Get('me')
     @UseGuards(JwtAuthGuard)
     me(@ExtractUserFromRequest() user: UserContextDto): Promise<MeViewDto> {
-        return this.authQueryRepository.me(user.id);
+        return this.authQueryRepository.me(user.userId);
     }
 
     @Post('registration-confirmation')
@@ -70,8 +80,9 @@ export class AuthController {
 
     @Post('new-password')
     @HttpCode(HttpStatus.NO_CONTENT)
-    newPassword(@Body() newPassword: string, recoveryCode: string): Promise<void> {
-        return this.authService.newPassword(newPassword, recoveryCode);
+    @UseGuards(RateLimitGuard)
+    newPassword(@Body() dto: NewPasswordInputDto): Promise<void> {
+        return this.authService.newPassword(dto.newPassword, dto.recoveryCode);
     }
 
     @Post('password-recovery')

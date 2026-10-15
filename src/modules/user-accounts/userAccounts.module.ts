@@ -26,12 +26,25 @@ import {RateLimit, RateLimitSchema} from "./domain/rate-limit.entity";
 @Global()
 @Module({
     imports: [
-        ConfigModule.forRoot({
-            isGlobal: true, // Чтобы был доступен везде
-        }),
-        JwtModule.register({
-            secret: 'access-token-secret', //TODO: move to env. will be in the following lessons
-            signOptions: { expiresIn: '5m' }, // Время жизни токена
+        // ConfigModule.forRoot({
+        //     isGlobal: true, // Чтобы был доступен везде
+        // }),
+        JwtModule.registerAsync({
+            // secret: 'access-token-secret', //TODO: move to env. will be in the following lessons
+            // signOptions: { expiresIn: '5m' }, // Время жизни токена
+            inject: [ConfigService],
+            useFactory: async (configService: ConfigService) => {
+                const jwtSecret = configService.get<string>('JWT_SECRET');
+
+                if (!jwtSecret) {
+                    throw new Error('Критическая ошибка: Переменная JWT_SECRET не найдена в файлах окружения .env!');
+                }
+
+                return {
+                    secret: jwtSecret,
+                    signOptions: { expiresIn: '5m' }, // Время жизни токена
+                };
+            },
         }),
         MongooseModule.forFeature([
             { name: User.name, schema: UserSchema },

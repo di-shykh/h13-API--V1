@@ -1,18 +1,9 @@
 import {HttpStatus, INestApplication} from "@nestjs/common";
 import {CreateBlogInputDto} from "../../../src/modules/bloggers-platform/blogs/api/input-dto/blogs.input-dto";
-import {
-    CreatePostForBlogInputDto
-} from "../../../src/modules/bloggers-platform/posts/api/input-dto/create-post-for-blog.input-dto";
 import {generateBasicAuthToken} from "../../utils/auth-utils";
-import {Test, TestingModule} from "@nestjs/testing";
-import {AppModule} from "../../../src/app.module";
-import {CreatePostInputDto} from "../../../src/modules/bloggers-platform/posts/api/input-dto/posts.input-dto";
 import {createBlog} from "../../utils/blogs/create-blog";
 import {BlogsViewDto} from "../../../src/modules/bloggers-platform/blogs/api/view-dto/blogs-view.dto";
-import {
-    ExtendedLikesInfoViewDto,
-    PostViewDto
-} from "../../../src/modules/bloggers-platform/posts/api/view-dto/posts.view-dto";
+import { PostViewDto} from "../../../src/modules/bloggers-platform/posts/api/view-dto/posts.view-dto";
 import {createPost} from "../../utils/posts/create-post";
 import {getPostById} from "../../utils/posts/get-post-by-id";
 import {LikeStatus} from "../../../src/modules/bloggers-platform/likes/domain/likeStatus";
@@ -20,12 +11,11 @@ import {PostUpdateDto} from "../../../src/modules/bloggers-platform/posts/dto/po
 import {updatePost} from "../../utils/posts/update-post";
 import request from "supertest";
 import {POSTS_PATH} from "../../../src/core/paths/paths";
-import {getConnectionToken} from "@nestjs/mongoose";
-import {pipesSetup} from "../../../src/setup/pipes.setup";
+import {clearDatabase, initApp} from "../../helpers/app-helper";
 
 describe('AppController (e2e),body validation tests', () => {
     let app: INestApplication;
-    let moduleFixture: TestingModule | undefined;
+
     const testBlogData: CreateBlogInputDto = {
         name: 'new blog',
         description: 'description',
@@ -38,19 +28,10 @@ describe('AppController (e2e),body validation tests', () => {
     };
     const adminToken: string = generateBasicAuthToken();
     beforeAll(async () => {
-        moduleFixture = await Test.createTestingModule({
-            imports: [AppModule],
-        }).compile();
-        app = moduleFixture.createNestApplication();
-        pipesSetup(app);
-        await app.init();
+        app = await initApp();
     });
     beforeEach(async () => {
-        const connection = moduleFixture!.get(getConnectionToken());
-        const collections = connection.collections;
-        for (const key in collections) {
-            await collections[key].deleteMany({});
-        }
+       await clearDatabase(app);
     });
     it('should create post POST /posts' , async () => {
         const blog: BlogsViewDto = await createBlog(app, adminToken, testBlogData);
@@ -191,5 +172,5 @@ describe('AppController (e2e),body validation tests', () => {
     });
     afterAll(async () => {
         await app.close();
-    })
+    });
 })

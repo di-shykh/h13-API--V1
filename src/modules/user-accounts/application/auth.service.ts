@@ -21,9 +21,17 @@ export class AuthService {
         private emailService: EmailService,
     ) {}
     async login(userId: string) {
-        const accessToken = await this.jwtService.sign({ id: userId } as UserContextDto);
+        const accessToken = this.jwtService.sign({ userId: userId } as UserContextDto, {expiresIn:'5m'});
+        const refreshToken = this.jwtService.sign(
+            {
+                userId: userId,
+                deviceId: 'test-device-id' //TODO chenge to deviceId
+            },
+            { expiresIn: '24h' },
+            );
         return {
-            accessToken
+            accessToken,
+            refreshToken
         };
     }
     async validateUser(loginOrEmail: string, password: string): Promise<UserContextDto | null> {
@@ -35,7 +43,7 @@ export class AuthService {
         if (!isPasswordValid) {
             return null;
         }
-        return {id: user._id.toString()};
+        return {userId: user._id.toString()};
     }
     async confirmUserRegistration(code: string) {
         if(!code || code.length !== 36) {
@@ -140,14 +148,6 @@ export class AuthService {
             user.updateEmailConfirmationData(confirmationCode);
             await this.usersRepository.save(user);
         } catch (e) {
-            // const message: string = e instanceof Error ? e.message : 'Email wasn\'t confirmed';
-            // throw new DomainException({
-            //     code: DomainExceptionCode.BadRequest,
-            //     message: message,
-            //     extensions: [
-            //         { message: message, field: 'email' },
-            //     ]
-            // })
             console.error(`Failed to send confirmation email to ${user.email}:`, e);
         }
     }

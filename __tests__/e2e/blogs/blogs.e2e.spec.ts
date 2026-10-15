@@ -1,7 +1,5 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import {HttpStatus, INestApplication, ValidationPipe} from '@nestjs/common';
+import {HttpStatus, INestApplication} from '@nestjs/common';
 import request from 'supertest';
-import {AppModule} from 'src/app.module';
 import {generateBasicAuthToken} from "../../utils/auth-utils";
 import {getBlogById} from "../../utils/blogs/get-blog-by-id";
 import {createBlog} from "../../utils/blogs/create-blog";
@@ -16,29 +14,17 @@ import {
 } from "../../../src/modules/bloggers-platform/posts/api/input-dto/create-post-for-blog.input-dto";
 import {getPostById} from "../../utils/posts/get-post-by-id";
 import {getBlogPosts} from "../../utils/blogs/get-blog-posts";
-import { getConnectionToken } from '@nestjs/mongoose';
-import {pipesSetup} from "../../../src/setup/pipes.setup";
+import {clearDatabase, initApp} from "../../helpers/app-helper";
 
-describe('AppController', () => {
+describe('BlogsController', () => {
     let app: INestApplication;
-    let moduleFixture: TestingModule | undefined;
 
     beforeAll(async () => {
-        moduleFixture = await Test.createTestingModule({
-            imports: [AppModule],
-        }).compile();
-
-        app = moduleFixture.createNestApplication();
-        pipesSetup(app);
-        await app.init();
+        app = await initApp();
     });
 
     beforeEach(async () => {
-        const connection  = moduleFixture!.get(getConnectionToken());
-        const collections = connection.collections;
-        for (const key in collections) {
-            await collections[key].deleteMany({});
-        }
+        await clearDatabase(app);
     });
     const testBlogData: CreateBlogInputDto = {
         name: 'new blog',
