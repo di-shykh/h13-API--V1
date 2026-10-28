@@ -9,6 +9,8 @@ import {LikeStatus} from "../../../likes/domain/likeStatus";
 import {BaseQueryParams} from "../../../../../core/dto/base.query-params.input-dto";
 import {CommentSortField} from "../../api/input-dto/comment-sort-by";
 import {Types} from "mongoose";
+import {DomainException} from "../../../../../core/exceptions/domain-exceptions";
+import {DomainExceptionCode} from "../../../../../core/exceptions/domain-exception-codes";
 
 @Injectable()
 export class CommentsQueryRepository {
@@ -22,7 +24,13 @@ export class CommentsQueryRepository {
             deletedAt: null,
         });
         if (!comment) {
-            throw new NotFoundException("Comment not found");
+            throw new DomainException({
+                code: DomainExceptionCode.NotFound,
+                message: `Comment with id ${id} not found`,
+                extensions: [
+                    { message: `Comment with this Id is not exist`, field: 'commentId' },
+                ]
+            });
         }
         let like: LikeDocument | null = null;
         if(userId) {

@@ -19,12 +19,16 @@ export class CommentViewDto {
         const dto = new CommentViewDto();
         dto.id = comment._id.toString();
         dto.content = comment.content;
-        dto.commentatorInfo.userId = comment.userId;
-        dto.commentatorInfo.userLogin = comment.userLogin;
+        dto.commentatorInfo = {
+            userId: comment.userId,
+            userLogin: comment.userLogin,
+        }
         dto.createdAt = comment.createdAt;
-        dto.likesInfo.likesCount = comment.likesCount || 0;
-        dto.likesInfo.dislikesCount = comment.dislikesCount || 0;
-        dto.likesInfo.myStatus = myStatus || 'None';
+        dto.likesInfo = {
+            likesCount: comment.likesCount || 0,
+            dislikesCount: comment.dislikesCount || 0,
+            myStatus: myStatus || LikeStatus.none,
+        };
         return dto;
     }
 }

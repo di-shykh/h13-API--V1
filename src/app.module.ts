@@ -10,6 +10,7 @@ import {APP_FILTER} from "@nestjs/core";
 import {AllHttpExceptionsFilter} from "./core/exceptions/filters/all-exceptions.filter";
 import {DomainHttpExceptionsFilter} from "./core/exceptions/filters/domain-exception.filters";
 import {AppConfigModule} from "./config.module";
+import {CqrsModule} from "@nestjs/cqrs";
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import {AppConfigModule} from "./config.module";
     UserAccountsModule,
     TestingModule,
     BloggersPlatformModule,
+    CqrsModule,
     CoreModule,
     AppConfigModule,
   ],
