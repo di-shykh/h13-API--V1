@@ -23,6 +23,10 @@ import {JwtAuthGuard} from "../../../user-accounts/guards/bearer/jwt-auth.guard"
 import {DeleteCommentCommand} from "../application/use-cases/delete-comment.use-case";
 import { CommandBus } from '@nestjs/cqrs';
 import {CommentInputDto} from "./input-dto/comment.input-dto";
+import {UpdateCommentCommand} from "../application/use-cases/update-comment.use-case";
+import {CommentUpdateDto} from "../dto/comment-update.dto";
+import {LikeStatus} from "../../likes/domain/likeStatus";
+import {UpdateCommentLikeStatusCommand} from "../application/use-cases/update-comment-like-status.use-case";
 
 @Controller('comments')
 export class CommentsController {
@@ -51,6 +55,26 @@ export class CommentsController {
     ) {
         return this.commandBus.execute(new DeleteCommentCommand(commentId, userId));
    }
-
-
+   @ApiParam({name: 'commentId'})
+    @Put(':commentId')
+    @HttpCode(HttpStatus.NO_CONTENT)
+    @UseGuards(JwtAuthGuard)
+    async updateComment(
+        @Param('commentId') commentId: string,
+        @CurrentUserId() userId: string,
+        @Body() content: CommentUpdateDto,
+   ){
+       return this.commandBus.execute(new UpdateCommentCommand(commentId, content, userId));
+   }
+    @ApiParam({name: 'commentId'})
+    @Put(':commentId/like-status')
+    @HttpCode(HttpStatus.NO_CONTENT)
+    @UseGuards(JwtAuthGuard)
+    async updateLikeStatus(
+        @Param('commentId') commentId: string,
+        @CurrentUserId() userId: string,
+        @Body() likeStatus: LikeStatus,
+    ){
+        return this.commandBus.execute(new UpdateCommentLikeStatusCommand(commentId, userId, likeStatus));
+    }
 }

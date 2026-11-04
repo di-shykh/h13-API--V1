@@ -61,13 +61,3 @@ export class CreateCommentHandler implements ICommandHandler<CreateCommentComman
         return comment._id.toString();
     }
 }
-
-
-// export class CreateCommentDomainDto {
-//     content: string;
-//     postId: string;
-//     commentatorInfo: {
-//         userId: string;
-//         userLogin: string;
-//     }
-// }

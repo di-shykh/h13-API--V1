@@ -3,6 +3,7 @@ import {HydratedDocument, Model, Types} from "mongoose";
 import {CreateCommentDomainDto} from "../dto/comment-create.domain.dto";
 import {CommentUpdateDto} from "../dto/comment-update.dto";
 import {LikeStatus} from "../../likes/domain/likeStatus";
+import {LikeDocument} from "../../likes/domain/like.entity";
 
 @Schema({timestamps: true})
 export class Comment {
@@ -53,6 +54,10 @@ export class Comment {
     }
     updateComment(dto: CommentUpdateDto) {
         this.content = dto.content;
+    }
+    updateLikeCount(likeCount: number, dislikeCount: number ): void {
+        this.likesCount = likeCount;
+        this.dislikesCount = dislikeCount;
     }
 }
 
