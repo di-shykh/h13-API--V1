@@ -27,6 +27,9 @@ import {CurrentUserId} from "../../../user-accounts/guards/decorators/current-us
 import {CommentInputDto} from "../../comments/api/input-dto/comment.input-dto";
 import {CreateCommentCommand} from "../../comments/application/use-cases/create-comment.use-case";
 import { CommandBus } from '@nestjs/cqrs';
+import {LikeStatus} from "../../likes/domain/likeStatus";
+import {ExtendedLikeInputDto} from "../../likes/api/input-dto/extended-like.input-dto";
+import {PostUpdateLikeStatusCommand} from "./use-cases/update-post-like-status.use-case";
 
 @Controller('posts')
 export class PostsController {
@@ -89,5 +92,16 @@ export class PostsController {
     ) {
         const commentId: string = await this.commandBus.execute(new CreateCommentCommand(postId, userId, dto));
         return this.commentsQueryRepository.getByIdOrNotFoundFail(commentId, userId);
+    }
+    @ApiParam({name: 'postId'})
+    @Put(':postId/like-status')
+    @HttpCode(HttpStatus.NO_CONTENT)
+    @UseGuards(JwtAuthGuard)
+    async changeLikeStatus(
+        @Param('postId') postId: string,
+        @CurrentUserId() userId: string,
+        @Body() likeStatus: ExtendedLikeInputDto
+    ): Promise<void> {
+        return this.commandBus.execute(new PostUpdateLikeStatusCommand(postId, userId, likeStatus));
     }
 }

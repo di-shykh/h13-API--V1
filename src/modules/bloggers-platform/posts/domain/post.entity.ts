@@ -5,6 +5,7 @@ import {PostUpdateDto} from "../dto/post-update.dto";
 import {LikeStatus} from "../../likes/domain/likeStatus";
 import {ExtendedLikesInfo, ExtendedLikesInfoSchema} from "../../likes/domain/extendedLikesInfo.schema";
 import {LikeInfo} from "../../likes/domain/likeInfo.schema";
+import {ExtendedLikeDocument} from "../../likes/domain/extendedLike.entity";
 
 @Schema({timestamps:true})
 export class Post{
@@ -60,11 +61,18 @@ export class Post{
         this.content = dto.content;
         this.blogId = dto.blogId;
     }
-    updateExtendedLikesInfo(likesCount: number, dislikesCount: number, myStatus: LikeStatus, newestLikes: LikeInfo[]){
-        this.extendedLikesInfo.likesCount = likesCount;
-        this.extendedLikesInfo.dislikesCount = dislikesCount;
-        this.extendedLikesInfo.newestLikes = newestLikes;
-        this.extendedLikesInfo.myStatus = myStatus;
+    updateExtendedLikesInfo(likesCount: number, dislikesCount: number, myStatus: LikeStatus, newestLikes: ExtendedLikeDocument[]){
+        this.extendedLikesInfo = {
+            likesCount,
+            dislikesCount,
+            myStatus,
+            newestLikes: newestLikes.map(like => ({
+                addedAt: like.addedAt,
+                userId: like.userId,
+                login: like.userLogin,
+            }))
+        }
+
     }
 }
 export const PostSchema = SchemaFactory.createForClass(Post);

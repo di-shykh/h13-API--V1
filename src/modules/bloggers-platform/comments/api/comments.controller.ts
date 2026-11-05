@@ -27,6 +27,7 @@ import {UpdateCommentCommand} from "../application/use-cases/update-comment.use-
 import {CommentUpdateDto} from "../dto/comment-update.dto";
 import {LikeStatus} from "../../likes/domain/likeStatus";
 import {UpdateCommentLikeStatusCommand} from "../application/use-cases/update-comment-like-status.use-case";
+import {LikeInputDto} from "../../likes/api/input-dto/like.input-dto";
 
 @Controller('comments')
 export class CommentsController {
@@ -73,8 +74,8 @@ export class CommentsController {
     async updateLikeStatus(
         @Param('commentId') commentId: string,
         @CurrentUserId() userId: string,
-        @Body() likeStatus: LikeStatus,
+        @Body() dto: LikeInputDto,
     ){
-        return this.commandBus.execute(new UpdateCommentLikeStatusCommand(commentId, userId, likeStatus));
+        return this.commandBus.execute(new UpdateCommentLikeStatusCommand(commentId, userId, dto.likeStatus));
     }
 }

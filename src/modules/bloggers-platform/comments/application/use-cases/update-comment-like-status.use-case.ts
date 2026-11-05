@@ -1,7 +1,6 @@
 import {LikeStatus} from "../../../likes/domain/likeStatus";
 import {CommandHandler, ICommandHandler} from "@nestjs/cqrs";
 import {InjectModel} from "@nestjs/mongoose";
-import {Comment, type CommentModelType} from "../../domain/comment.entity";
 import {CommentsRepository} from "../../infrastructure/comments.repository";
 import {DomainException} from "../../../../../core/exceptions/domain-exceptions";
 import {DomainExceptionCode} from "../../../../../core/exceptions/domain-exception-codes";
