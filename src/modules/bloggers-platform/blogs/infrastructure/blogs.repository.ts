@@ -7,6 +7,9 @@ import {Types} from "mongoose";
 export class BlogsRepository {
     constructor(@InjectModel(Blog.name) private BlogModel: BlogModelType) {}
     async findById(id: string): Promise<BlogDocument|null> {
+        if (!Types.ObjectId.isValid(id)) {
+            return null;
+        }
         const objectId =  new Types.ObjectId(id);
         return this.BlogModel.findOne({
             _id: objectId,

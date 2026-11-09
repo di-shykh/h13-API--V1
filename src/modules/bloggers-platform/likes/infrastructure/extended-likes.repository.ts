@@ -9,6 +9,9 @@ export class ExtendedLikesRepository {
     constructor(@InjectModel(ExtendedLike.name) private extendedLikeModel: ExtendedLikeModelType) {}
 
     async findById(id: string): Promise<ExtendedLikeDocument | null> {
+        if(!Types.ObjectId.isValid(id)) {
+            return null;
+        }
         const objectId = new Types.ObjectId(id);
         return this.extendedLikeModel.findOne({
             _id: objectId,
@@ -34,11 +37,9 @@ export class ExtendedLikesRepository {
     }
     async countByParentAndStatus(postId: string, status: LikeStatus): Promise<number> {
         return this.extendedLikeModel.countDocuments({
-            where: {
                 postId: postId,
                 status: status,
                 deletedAt: null,
-            }
         });
     }
     async findLastExtendedLikesByPostId(postId: string): Promise<ExtendedLikeDocument[]> {

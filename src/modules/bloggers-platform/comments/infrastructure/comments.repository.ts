@@ -10,6 +10,9 @@ export class CommentsRepository {
         await comment.save();
     }
     async findById(commentId: string): Promise<CommentDocument|null> {
+        if (!Types.ObjectId.isValid(commentId)) {
+            return null;
+        }
         const objectId =  new Types.ObjectId(commentId);
         return this.CommentModel.findOne({
             _id: objectId,
@@ -17,7 +20,14 @@ export class CommentsRepository {
         });
     }
     async deleteComment(commentId: string){
-        return this.CommentModel.deleteOne({_id: commentId});
+        if (!Types.ObjectId.isValid(commentId)) {
+            return { modifiedCount: 0 };
+        }
+        const result = await this.CommentModel.updateOne(
+            {_id: new Types.ObjectId(commentId)},
+            {$set: {deletedAt: new Date()}},
+        )
+        return {deletedCount: result.modifiedCount};
     }
     async createComment(comment: CommentDocument): Promise<string> {
         const insertedComment = await this.CommentModel.create(comment);

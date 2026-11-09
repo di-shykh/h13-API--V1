@@ -25,7 +25,7 @@ export class Comment {
     likesCount: number;
     @Prop({type: Number, required: true})
     dislikesCount: number;
-    @Prop({type: LikeStatus, required: true})
+    @Prop({type: String, enum: LikeStatus, default: LikeStatus.none, required: true})
     myStatus: LikeStatus;
 
     get id() {

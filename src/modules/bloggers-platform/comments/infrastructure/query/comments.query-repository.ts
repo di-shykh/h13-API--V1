@@ -18,19 +18,24 @@ export class CommentsQueryRepository {
         @InjectModel(Comment.name) private CommentModel: CommentModelType,
         @InjectModel(Like.name) private LikeModel: LikeModelType,
     ) {}
-    async getByIdOrNotFoundFail(id: string, userId?: string): Promise<CommentViewDto> {
+    async getByIdOrNotFoundFail(id: string, userId?: string): Promise<CommentViewDto|null> {
+        const notFound = () => new DomainException({
+            code: DomainExceptionCode.NotFound,
+            message: `Comment with id ${id} not found`,
+            extensions: [
+                { message: `Comment with this Id is not exist`, field: 'commentId' },
+            ],
+        });
+        if (!Types.ObjectId.isValid(id)) {
+            throw notFound();
+        }
+
         const comment = await this.CommentModel.findOne({
-            _id: id,
+            _id: new Types.ObjectId(id),
             deletedAt: null,
         });
         if (!comment) {
-            throw new DomainException({
-                code: DomainExceptionCode.NotFound,
-                message: `Comment with id ${id} not found`,
-                extensions: [
-                    { message: `Comment with this Id is not exist`, field: 'commentId' },
-                ]
-            });
+            throw notFound();
         }
         let like: LikeDocument | null = null;
         if(userId) {

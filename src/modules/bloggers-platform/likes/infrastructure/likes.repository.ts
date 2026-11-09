@@ -10,6 +10,9 @@ export class LikesRepository {
     }
 
     async findById(id: string): Promise<LikeDocument | null> {
+        if(!Types.ObjectId.isValid(id)) {
+            return null;
+        }
         const objectId = new Types.ObjectId(id);
         return this.LikeModel.findOne({
             _id: objectId,
@@ -18,7 +21,13 @@ export class LikesRepository {
     }
 
     async save(like: LikeDocument): Promise<void> {
-        await like.save();
+       // await like.save();
+        try {
+            await like.save();
+        } catch (e) {
+            console.error('🔥 [LIKES.SAVE ERROR]:', e);
+            throw e;
+        }
     }
 
     async findByIdOrNotFoundFail(id: string): Promise<LikeDocument> {
@@ -33,15 +42,15 @@ export class LikesRepository {
         const result = await this.LikeModel.findOne({
             authorId: userId,
             parentId: parentId,
+            deletedAt: null,
         });
         return result;
     }
     async countByParentAndStatus(parentId: string, status: LikeStatus): Promise<number> {
         return this.LikeModel.countDocuments({
-            where: {
                 parentId: parentId,
                 status: status,
-            }
+                deletedAt: null,
         });
     }
 }

@@ -28,6 +28,7 @@ import {CommentUpdateDto} from "../dto/comment-update.dto";
 import {LikeStatus} from "../../likes/domain/likeStatus";
 import {UpdateCommentLikeStatusCommand} from "../application/use-cases/update-comment-like-status.use-case";
 import {LikeInputDto} from "../../likes/api/input-dto/like.input-dto";
+import {JwtOptionalAuthGuard} from "../../../user-accounts/guards/bearer/jwt-optional-auth.guard";
 
 @Controller('comments')
 export class CommentsController {
@@ -40,6 +41,7 @@ export class CommentsController {
    }
    @ApiParam({name: 'id'})
     @Get(':id')
+   @UseGuards(JwtOptionalAuthGuard)
     async getCommentById(
         @Param('id') id: string,
         @CurrentUserId() userId: string,
@@ -76,6 +78,6 @@ export class CommentsController {
         @CurrentUserId() userId: string,
         @Body() dto: LikeInputDto,
     ){
-        return this.commandBus.execute(new UpdateCommentLikeStatusCommand(commentId, userId, dto.likeStatus));
+        return this.commandBus.execute(new UpdateCommentLikeStatusCommand(userId, commentId, dto.likeStatus));
     }
 }

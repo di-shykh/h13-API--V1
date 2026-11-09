@@ -78,19 +78,22 @@ export class PostsController {
     @Delete(':id')
     @HttpCode(HttpStatus.NO_CONTENT)
     @UseGuards(BasicAuthGuard)
-    async deleteBlog(@Param('id') id: string): Promise<void> {
+    async deletePost(@Param('id') id: string): Promise<void> {
         return this.postsService.deletePost(id);
     }
-    @ApiParam({name: 'postId'})
-    @Post(':postId')
+    @ApiParam({ name: 'postId' })
+    @Post(':postId/comments')
     @HttpCode(HttpStatus.CREATED)
     @UseGuards(JwtAuthGuard)
     async postComment(
         @Param('postId') postId: string,
         @CurrentUserId() userId: string,
-        @Body() dto: CommentInputDto
+        @Body() dto: CommentInputDto,
     ) {
-        const commentId: string = await this.commandBus.execute(new CreateCommentCommand(postId, userId, dto));
+        const commentId: string = await this.commandBus.execute(
+            new CreateCommentCommand(postId, userId, dto),
+        );
+
         return this.commentsQueryRepository.getByIdOrNotFoundFail(commentId, userId);
     }
     @ApiParam({name: 'postId'})

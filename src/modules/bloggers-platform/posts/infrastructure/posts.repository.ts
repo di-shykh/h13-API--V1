@@ -7,6 +7,9 @@ import {Types} from "mongoose";
 export class PostsRepository {
     constructor(@InjectModel(Post.name) private PostModel: PostModelType) {}
     async findById(id: string): Promise<PostDocument|null> {
+        if (!Types.ObjectId.isValid(id)) {
+            return null;
+        }
         const objectId = new Types.ObjectId(id);
         return this.PostModel.findOne({
             _id: objectId,

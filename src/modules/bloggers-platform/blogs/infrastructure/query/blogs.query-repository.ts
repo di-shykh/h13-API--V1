@@ -14,6 +14,9 @@ export class BlogsQueryRepository {
         private  BlogModel: BlogModelType,
     ) {}
     async getByIdOrNotFoundFail(id: string): Promise<BlogsViewDto> {
+        if (!Types.ObjectId.isValid(id)) {
+            throw new NotFoundException('Blog not found');   // или DomainException(NotFound)
+        }
         const objectId = new Types.ObjectId(id);
         const blog = await this.BlogModel.findOne({
                 _id: objectId,

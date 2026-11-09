@@ -21,7 +21,9 @@ export class UpdateCommentLikeStatusHandler implements ICommandHandler<UpdateCom
         @InjectModel(Like.name) private likeModel: LikeModelType,
         private commentRepository: CommentsRepository,
         private likesRepository: LikesRepository,
-    ) {}
+    ) {
+    }
+
     async execute(command: UpdateCommentLikeStatusCommand): Promise<void> {
         const comment = await this.commentRepository.findByIdOrNotFoundFail(command.commentId);
         if (!comment) {
@@ -29,31 +31,42 @@ export class UpdateCommentLikeStatusHandler implements ICommandHandler<UpdateCom
                 code: DomainExceptionCode.NotFound,
                 message: `Could not find comment with id ${command.commentId}`,
                 extensions: [
-                    { message: 'Could not find comment', field: 'commentId' }
+                    {message: 'Could not find comment', field: 'commentId'}
                 ]
             })
         }
-        if(!Object.values(LikeStatus).includes(command.likeStatus)) {
+        if (!Object.values(LikeStatus).includes(command.likeStatus)) {
             throw new DomainException({
                 code: DomainExceptionCode.BadRequest,
                 message: `LikeStatus isn\'t valid!`,
                 extensions: [
-                    { message: 'LikeStatus isn\'t valid!', field: 'likeStatus' }
+                    {message: 'LikeStatus isn\'t valid!', field: 'likeStatus'}
                 ]
             })
         }
-        let like = await this.likesRepository.findLikeByUserIdAndParentId(command.userId, command.commentId);
-        if (!like && command.likeStatus !== LikeStatus.none) {
-            like = this.likeModel.createInstance({
-                createdAt: new Date(),
-                status: command.likeStatus,
-                authorId: command.userId,
-                parentId: command.commentId
-            });
-            await this.likesRepository.save(like);
-        }
-        else {
-            like?.changeStatus({likeStatus: command.likeStatus});
+        const exitingLike = await this.likesRepository.findLikeByUserIdAndParentId(
+            command.userId,
+            command.commentId
+        );
+        if (command.likeStatus === LikeStatus.none) {
+            if (exitingLike) {
+                exitingLike.makeDeleted();
+                await this.likesRepository.save(exitingLike);
+            }
+        } else {
+            if (exitingLike) {
+                exitingLike.changeStatus({likeStatus: command.likeStatus});
+                exitingLike.deletedAt = null;
+                await this.likesRepository.save(exitingLike);
+            } else {
+                const like = this.likeModel.createInstance({
+                    createdAt: new Date(),
+                    status: command.likeStatus,
+                    authorId: command.userId,
+                    parentId: command.commentId
+                });
+                await this.likesRepository.save(like);
+            }
         }
         const likesCount = await this.likesRepository.countByParentAndStatus(command.commentId, LikeStatus.like);
         const dislikesCount = await this.likesRepository.countByParentAndStatus(command.commentId, LikeStatus.dislike);

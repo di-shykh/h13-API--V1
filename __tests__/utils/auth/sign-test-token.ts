@@ -5,7 +5,8 @@ export function signTestToken(userId: string): string {
     if (!secret) {
         throw new Error('Тестовая ошибка: process.env.JWT_SECRET не инициализирован в Jest!');
     }
-    return jwt.sign({ userId }, secret, {
-        expiresIn: '1h',
+    const token= jwt.sign({ userId }, secret, {
+        expiresIn: '5m',
     });
+    return token;
 }

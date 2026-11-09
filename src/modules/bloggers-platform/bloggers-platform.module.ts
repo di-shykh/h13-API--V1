@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { CqrsModule } from '@nestjs/cqrs';
 import { User, UserSchema } from '../user-accounts/domain/user.entity';
 
 import {BlogsController} from "./blogs/api/blogs.controller";
@@ -11,7 +12,7 @@ import {CommentsService} from "./comments/application/comments.service";
 
 import { BlogsRepository } from './blogs/infrastructure/blogs.repository';
 import { PostsRepository } from './posts/infrastructure/posts.repository';
-//import { CommentsRepository } from './comments/infrastructure/comments.repository';
+import { CommentsRepository } from './comments/infrastructure/comments.repository';
 
 import { BlogsQueryRepository } from './blogs/infrastructure/query/blogs.query-repository';
 import { PostsQueryRepository } from './posts/infrastructure/query/posts.query-repository';
@@ -30,15 +31,25 @@ import {PassportModule} from "@nestjs/passport";
 // import {UsersService} from "../user-accounts/application/users-service";
 // import {UsersController} from "../user-accounts/api/users-controller";
 
+import { CreateCommentHandler } from './comments/application/use-cases/create-comment.use-case';
+import { UpdateCommentHandler } from './comments/application/use-cases/update-comment.use-case';
+import { DeleteCommentHandler } from './comments/application/use-cases/delete-comment.use-case';
+import {LikesRepository} from "./likes/infrastructure/likes.repository";
+import {ExtendedLikesRepository} from "./likes/infrastructure/extended-likes.repository";
+import {ExtendedLike, ExtendedLikeSchema} from "./likes/domain/extendedLike.entity";
+import {UpdateCommentLikeStatusHandler} from "./comments/application/use-cases/update-comment-like-status.use-case";
+
 @Module({
   imports: [
+      CqrsModule,
       UserAccountsModule,
       MongooseModule.forFeature([
-        { name: User.name, schema: UserSchema },
+        //{name: User.name, schema: UserSchema},
         {name: Blog.name, schema: BlogSchema},
         {name: Post.name, schema: PostSchema},
         {name: Comment.name, schema: CommentSchema},
-        { name: Like.name, schema: LikeSchema },
+        {name: Like.name, schema: LikeSchema},
+        {name: ExtendedLike.name, schema: ExtendedLikeSchema},
       ]),
     PassportModule,
   ],
@@ -55,11 +66,16 @@ import {PassportModule} from "@nestjs/passport";
     CommentsService,
     BlogsRepository,
     PostsRepository,
-    //CommentsRepository,
+    CommentsRepository,
     BlogsQueryRepository,
     PostsQueryRepository,
     CommentsQueryRepository,
-
+    LikesRepository,
+    ExtendedLikesRepository,
+    CreateCommentHandler,
+    UpdateCommentHandler,
+    DeleteCommentHandler,
+    UpdateCommentLikeStatusHandler,
   ]
 })
 export class BloggersPlatformModule {}

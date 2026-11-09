@@ -21,6 +21,7 @@ import {PasswordRecovery, PasswordRecoverySchema} from "./domain/password-recove
 import {PasswordRecoveryRepository} from "./infrastructure/password-recovery.repository";
 import {NotificationsModule} from "../notifications/notifications.module";
 import {RateLimit, RateLimitSchema} from "./domain/rate-limit.entity";
+import {AppConfigModule} from "../../config.module";
 // import { SecurityDevicesController } from './api/security-devices.controller';
 // import { SecurityDevicesQueryRepository } from './infrastructure/query/security-devices.query-repository';
 @Global()
@@ -32,6 +33,7 @@ import {RateLimit, RateLimitSchema} from "./domain/rate-limit.entity";
         JwtModule.registerAsync({
             // secret: 'access-token-secret', //TODO: move to env. will be in the following lessons
             // signOptions: { expiresIn: '5m' }, // Время жизни токена
+            imports: [AppConfigModule],
             inject: [ConfigService],
             useFactory: async (configService: ConfigService) => {
                 const jwtSecret = configService.get<string>('JWT_SECRET');
@@ -91,6 +93,7 @@ import {RateLimit, RateLimitSchema} from "./domain/rate-limit.entity";
         PasswordRecoveryRepository,
     ],
     exports: [
+        UsersRepository,
         UsersExternalQueryRepository,
         UsersExternalService,
         AuthService,

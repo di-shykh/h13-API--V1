@@ -11,16 +11,24 @@ import {AllHttpExceptionsFilter} from "./core/exceptions/filters/all-exceptions.
 import {DomainHttpExceptionsFilter} from "./core/exceptions/filters/domain-exception.filters";
 import {AppConfigModule} from "./config.module";
 import {CqrsModule} from "@nestjs/cqrs";
+import {ConfigService} from "@nestjs/config";
 
 @Module({
   imports: [
-    MongooseModule.forRoot('mongodb://root_admin:root_admin@ac-xykok0w-shard-00-00.cdldllg.mongodb.net:27017,ac-xykok0w-shard-00-01.cdldllg.mongodb.net:27017,ac-xykok0w-shard-00-02.cdldllg.mongodb.net:27017/?ssl=true&replicaSet=atlas-9njp5g-shard-0&authSource=admin&appName=Cluster0'),//TODO: move to env. will be in the following lessons
+    AppConfigModule,
+    //MongooseModule.forRoot('mongodb://root_admin:root_admin@ac-xykok0w-shard-00-00.cdldllg.mongodb.net:27017,ac-xykok0w-shard-00-01.cdldllg.mongodb.net:27017,ac-xykok0w-shard-00-02.cdldllg.mongodb.net:27017/?ssl=true&replicaSet=atlas-9njp5g-shard-0&authSource=admin&appName=Cluster0'),//TODO: move to env. will be in the following lessons
+    MongooseModule.forRootAsync({
+      imports: [AppConfigModule],
+      inject: [ConfigService],
+      useFactory: (cs: ConfigService) => ({
+        uri: cs.get<string>('MONGO_URI'),
+      }),
+    }),
     UserAccountsModule,
     TestingModule,
     BloggersPlatformModule,
     CqrsModule,
     CoreModule,
-    AppConfigModule,
   ],
   controllers: [
     AppController

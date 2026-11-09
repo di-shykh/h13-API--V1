@@ -13,6 +13,9 @@ export class PostsQueryRepository {
         @InjectModel(Post.name) private PostModel: PostModelType,
     ) {}
     async getByIdOrNotFoundFail(id: string): Promise<PostViewDto> {
+        if (!Types.ObjectId.isValid(id)) {
+            throw new NotFoundException('Post not found');   // или DomainException(NotFound)
+        }
         const objectId = new Types.ObjectId(id);
         const post= await this.PostModel.findOne({
             _id: objectId,

@@ -73,7 +73,7 @@ export class User{
      * Deletion timestamp, nullable, if date exist, means entity soft deleted
      * @type {Date | null}
      */
-    @Prop({ type: Date, nullable: true })
+    @Prop({ type: Date, default: null })
     deletedAt: Date | null;
 
     /**

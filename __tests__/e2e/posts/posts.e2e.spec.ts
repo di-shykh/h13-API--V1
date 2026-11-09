@@ -3,7 +3,7 @@ import {CreateBlogInputDto} from "../../../src/modules/bloggers-platform/blogs/a
 import {generateBasicAuthToken} from "../../utils/auth-utils";
 import {createBlog} from "../../utils/blogs/create-blog";
 import {BlogsViewDto} from "../../../src/modules/bloggers-platform/blogs/api/view-dto/blogs-view.dto";
-import { PostViewDto} from "../../../src/modules/bloggers-platform/posts/api/view-dto/posts.view-dto";
+import {PostViewDto} from "../../../src/modules/bloggers-platform/posts/api/view-dto/posts.view-dto";
 import {createPost} from "../../utils/posts/create-post";
 import {getPostById} from "../../utils/posts/get-post-by-id";
 import {LikeStatus} from "../../../src/modules/bloggers-platform/likes/domain/likeStatus";
@@ -13,7 +13,7 @@ import request from "supertest";
 import {POSTS_PATH} from "../../../src/core/paths/paths";
 import {clearDatabase, initApp} from "../../helpers/app-helper";
 
-describe('AppController (e2e),body validation tests', () => {
+describe('PostController (e2e)', () => {
     let app: INestApplication;
 
     const testBlogData: CreateBlogInputDto = {
@@ -170,6 +170,15 @@ describe('AppController (e2e),body validation tests', () => {
             .delete(`${POSTS_PATH}/${post.id}`)
             .expect(HttpStatus.UNAUTHORIZED);
     });
+    describe('should update like-status for post POST /posts/:postId/like-status', () => {
+        it('should update like-status for post POST /posts/:postId/like-status', async () => {
+            const blog: BlogsViewDto = await createBlog(app, adminToken, testBlogData);
+            const post: PostViewDto = await createPost(app, adminToken, {
+                ...testPostData,
+                blogId: blog.id,
+            });
+        })
+    })
     afterAll(async () => {
         await app.close();
     });
