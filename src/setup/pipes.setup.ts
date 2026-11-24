@@ -13,6 +13,9 @@ export function pipesSetup(app: INestApplication) {
             transform: true,
             whitelist: true,
             stopAtFirstError: false,
+            transformOptions: {
+                enableImplicitConversion: true,
+            },
             exceptionFactory: (errors) => {
                 const errorsMessages = errors.map(err => ({
                     message: Object.values(err.constraints || {})[0] || 'Error',

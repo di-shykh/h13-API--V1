@@ -21,12 +21,17 @@ import { GetUsersQueryParams } from './input-dto/get-users-query-params.input-dt
 import {BasicAuthGuard} from "../guards/basic/basic-auth.guard";
 import { ParseObjectIdPipe } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
+import {CommandBus} from "@nestjs/cqrs";
+import {CreateUserCommand} from "../application/use-cases/create-user.use-case";
+import {UpdateUserCommand} from "../application/use-cases/update-user.use-case";
+import {DeleteUserCommand} from "../application/use-cases/delete-user.use-case";
 
 @Controller('users')
 export class UsersController {
     constructor(
         private usersQueryRepository: UsersQueryRepository,
-        private usersService: UsersService
+        private usersService: UsersService,
+        private commandBus: CommandBus,
     ) {
         console.log('UsersController created');
     }
@@ -47,7 +52,7 @@ export class UsersController {
     @Post()
     @UseGuards(BasicAuthGuard)
     async createUser(@Body() body: CreateUserInputDto): Promise<UserViewDto> {
-        const userId = await this.usersService.createUser(body);
+        const userId = await this.commandBus.execute(new CreateUserCommand(body));
         return this.usersQueryRepository.getByIdOrNotFoundFail(userId);
     }
 
@@ -57,7 +62,7 @@ export class UsersController {
         @Param('id') id: string,
         @Body() body: UpdateUserInputDto,
     ): Promise<UserViewDto> {
-        const userId = await this.usersService.updateUser(id, body);
+        const userId = await this.commandBus.execute(new UpdateUserCommand(id, body));
 
         return this.usersQueryRepository.getByIdOrNotFoundFail(userId);
     }
@@ -67,6 +72,6 @@ export class UsersController {
     @HttpCode(HttpStatus.NO_CONTENT)
     @UseGuards(BasicAuthGuard)
     async deleteUser(@Param('id', ParseObjectIdPipe) id: Types.ObjectId): Promise<void> {
-        return this.usersService.deleteUser(id.toString());
+        return this.commandBus.execute(new DeleteUserCommand (id.toString()));
     }
 }

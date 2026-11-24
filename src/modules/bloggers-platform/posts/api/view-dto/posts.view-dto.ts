@@ -24,7 +24,7 @@ export class PostViewDto {
     createdAt: string;
     extendedLikesInfo: ExtendedLikesInfoViewDto;
 
-    static mapToView(post: PostDocument): PostViewDto {
+    static mapToView(post: PostDocument, myStatus: LikeStatus): PostViewDto {
         const dto = new PostViewDto();
         dto.id = post._id.toString();
         dto.title = post.title;
@@ -36,7 +36,7 @@ export class PostViewDto {
         dto.extendedLikesInfo = {
             likesCount: post.extendedLikesInfo.likesCount||0,
             dislikesCount: post.extendedLikesInfo.dislikesCount||0,
-            myStatus: (post.extendedLikesInfo?.myStatus as LikeStatus) || LikeStatus.none,
+            myStatus: myStatus,
             newestLikes: post.extendedLikesInfo?.newestLikes?.map(like =>({
                 addedAt: like.addedAt,
                 userId: like.userId,

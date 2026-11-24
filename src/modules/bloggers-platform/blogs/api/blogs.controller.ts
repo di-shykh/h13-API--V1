@@ -25,6 +25,8 @@ import {PostsService} from "../../posts/application/posts.service";
 import {CreatePostInputDto} from "../../posts/api/input-dto/posts.input-dto";
 import {CreatePostForBlogInputDto} from "../../posts/api/input-dto/create-post-for-blog.input-dto";
 import {BasicAuthGuard} from "../../../user-accounts/guards/basic/basic-auth.guard";
+import {JwtOptionalAuthGuard} from "../../../user-accounts/guards/bearer/jwt-optional-auth.guard";
+import {CurrentUserId} from "../../../user-accounts/guards/decorators/current-user-id.decorator";
 
 @Controller('blogs')
 export class BlogsController {
@@ -72,12 +74,14 @@ export class BlogsController {
         return this.blogsService.deleteBlog(id);
     }
     @Get(':blogId/posts')
+    @UseGuards(JwtOptionalAuthGuard)
     async getPostsByBlogId(
         @Param('blogId') blogId: string,
-        @Query() query: GetPotsQueryParams
+        @Query() query: GetPotsQueryParams,
+        @CurrentUserId() userId: string,
     ): Promise<PaginatedViewDto<PostViewDto[]>> {
         await this.blogsQueryRepository.getByIdOrNotFoundFail(blogId);
-        return this.postsQueryRepository.getPostsByBlogId(blogId, query);
+        return this.postsQueryRepository.getPostsByBlogId(blogId, query, userId ?? undefined);
     }
     @Post(':blogId/posts')
     @UseGuards(BasicAuthGuard)

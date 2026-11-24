@@ -35,7 +35,7 @@ export class DeleteCommentHandler implements ICommandHandler <DeleteCommentComma
             })
         }
         const result = await this.commentsRepository.deleteComment(commentId);
-        if(result.deletedCount<1) {
+        if(!result.deletedCount || result.deletedCount<1) {
             throw new DomainException({
                 code: DomainExceptionCode.NotFound,
                 message: `Could not find comment with id ${commentId}`,

@@ -23,6 +23,8 @@ import {RateLimitGuard} from "../guards/rate-limit/rate-limit.guard";
 import {UpdateUserInputDto} from "./input-dto/update-user.input-dto";
 import {ConfirmationCodeInputDto} from "../dto/confirmation-code.input-dto";
 import {NewPasswordInputDto} from "./input-dto/new-password.input-dto";
+import {RegisterUserCommand} from "../application/use-cases/register-user.use-case";
+import {CommandBus} from "@nestjs/cqrs";
 
 @Controller('auth')
 export class AuthController {
@@ -30,12 +32,13 @@ export class AuthController {
         private usersService: UsersService,
         private authService: AuthService,
         private authQueryRepository: AuthQueryRepository,
+        private commandBus: CommandBus,
     ) {}
     @Post('registration')
     @HttpCode(HttpStatus.NO_CONTENT)
     @UseGuards(RateLimitGuard)
     registration(@Body() body: CreateUserInputDto): Promise<void> {
-        return this.usersService.registerUser(body);
+        return this.commandBus.execute(new RegisterUserCommand(body));
     }
 
     @Post('login')

@@ -71,8 +71,9 @@ export class CommentsQueryRepository {
         if (query.createdAt) {
             filter.createdAt= query.createdAt;
         }
+        const sortDirection = query.sortDirection === 'asc' ? 'asc' : 'desc';
         const comments = await this.CommentModel.find(filter)
-            .sort({[query.sortBy]: query.sortDirection})
+            .sort({[query.sortBy || 'createdAt']: sortDirection})
             .skip(query.calculateSkip())
             .limit(query.pageSize);
         const totalCount = await this.CommentModel.countDocuments(filter);

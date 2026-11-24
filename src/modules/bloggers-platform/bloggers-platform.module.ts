@@ -22,10 +22,6 @@ import {Blog, BlogSchema} from "./blogs/domain/blog.entity";
 import {Comment, CommentSchema} from "./comments/domain/comment.entity";
 import {Post, PostSchema} from "./posts/domain/post.entity";
 import {UserAccountsModule} from "../user-accounts/userAccounts.module";
-import {
-  UsersExternalQueryRepository
-} from "../user-accounts/infrastructure/external-query/users.external-query-repository";
-import {UsersExternalService} from "../user-accounts/application/users.external-service";
 import {Like, LikeSchema} from "./likes/domain/like.entity";
 import {PassportModule} from "@nestjs/passport";
 // import {UsersService} from "../user-accounts/application/users-service";
@@ -38,6 +34,7 @@ import {LikesRepository} from "./likes/infrastructure/likes.repository";
 import {ExtendedLikesRepository} from "./likes/infrastructure/extended-likes.repository";
 import {ExtendedLike, ExtendedLikeSchema} from "./likes/domain/extendedLike.entity";
 import {UpdateCommentLikeStatusHandler} from "./comments/application/use-cases/update-comment-like-status.use-case";
+import {PostUpdateLikeStatusHandler} from "./posts/application/use-cases/update-post-like-status.use-case";
 
 @Module({
   imports: [
@@ -76,6 +73,7 @@ import {UpdateCommentLikeStatusHandler} from "./comments/application/use-cases/u
     UpdateCommentHandler,
     DeleteCommentHandler,
     UpdateCommentLikeStatusHandler,
+    PostUpdateLikeStatusHandler
   ]
 })
 export class BloggersPlatformModule {}

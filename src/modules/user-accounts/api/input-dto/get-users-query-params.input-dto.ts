@@ -6,8 +6,8 @@ import {Type} from "class-transformer";
 
 //наследуемся от класса BaseQueryParams, где уже есть pageNumber, pageSize и т.п., чтобы не дублировать эти свойства
 export class GetUsersQueryParams extends BaseQueryParams {
-    @IsEnum(UsersSortBy)
     @IsOptional()
+    @IsEnum(UsersSortBy)
     sortBy = UsersSortBy.CreatedAt;
 
     @IsOptional()
@@ -26,11 +26,11 @@ export class GetUsersQueryParams extends BaseQueryParams {
     @Min(1)
     pageSize: number = 10;
 
-    @IsString()
     @IsOptional()
+    @IsString()
     searchLoginTerm: string | null = null;
 
-    @IsString()
     @IsOptional()
+    @IsString()
     searchEmailTerm: string | null = null;
 }

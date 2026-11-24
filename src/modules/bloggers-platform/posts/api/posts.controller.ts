@@ -29,7 +29,8 @@ import {CreateCommentCommand} from "../../comments/application/use-cases/create-
 import { CommandBus } from '@nestjs/cqrs';
 import {LikeStatus} from "../../likes/domain/likeStatus";
 import {ExtendedLikeInputDto} from "../../likes/api/input-dto/extended-like.input-dto";
-import {PostUpdateLikeStatusCommand} from "./use-cases/update-post-like-status.use-case";
+import {PostUpdateLikeStatusCommand} from "../application/use-cases/update-post-like-status.use-case";
+import {JwtOptionalAuthGuard} from "../../../user-accounts/guards/bearer/jwt-optional-auth.guard";
 
 @Controller('posts')
 export class PostsController {
@@ -42,13 +43,23 @@ export class PostsController {
         console.log('PostsController created');
     }
     @ApiParam({ name: 'id' }) //для сваггера
+
     @Get(':id')
-    async getPostById(@Param('id') id: string): Promise<PostViewDto> {
-        return this.postsQueryRepository.getByIdOrNotFoundFail(id);
+    @UseGuards(JwtOptionalAuthGuard)
+    async getPostById(
+        @Param('id') id: string,
+        @CurrentUserId() userId: string,
+    ): Promise<PostViewDto> {
+        return this.postsQueryRepository.getByIdOrNotFoundFail(id, userId ?? undefined);
     }
+
     @Get()
-    async getAllPosts(@Query() query: GetPotsQueryParams): Promise<PaginatedViewDto<PostViewDto[]>> {
-        return this.postsQueryRepository.getAll(query);
+    @UseGuards(JwtOptionalAuthGuard)
+    async getAllPosts(
+        @Query() query: GetPotsQueryParams,
+        @CurrentUserId() userId: string,
+        ): Promise<PaginatedViewDto<PostViewDto[]>> {
+        return this.postsQueryRepository.getAll(query, userId ?? undefined);
     }
     @Post()
     @UseGuards(BasicAuthGuard)
@@ -67,12 +78,16 @@ export class PostsController {
     ): Promise<void> {
         return this.postsService.updatePost(id, postInputDto);
     }
+
     @Get(':postId/comments')
+    @UseGuards(JwtOptionalAuthGuard)
     async getComment(
         @Param('postId') postId: string,
-        @Query() query: GetCommentsQueryParams
+        @Query() query: GetCommentsQueryParams,
+        @CurrentUserId() userId: string,
         ): Promise<PaginatedViewDto<CommentViewDto[]>> {
-        return await this.commentsQueryRepository.getAllComments(query, postId);
+        await this.postsQueryRepository.getByIdOrNotFoundFail(postId);
+        return await this.commentsQueryRepository.getAllComments(query, postId, userId ?? undefined);
     }
     @ApiParam({ name: 'id' }) //для сваггера
     @Delete(':id')

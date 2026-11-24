@@ -420,4 +420,58 @@ describe('CommentsController (e2e)', () => {
                 .expect(HttpStatus.NOT_FOUND);
         });
     });
+    describe('should get comment GET /comments/:commentId', () => {
+        it('should get comment GET /comments/:commentId', async () => {
+            const blog: BlogsViewDto = await createBlog(app, adminToken, testBlogData);
+            const post: PostViewDto = await createPost(app, adminToken, {
+                ...testPostData,
+                blogId: blog.id,
+            });
+            const comment = await createComment(app, userAccessToken, post.id, testCommentData);
+            const commentResponse: CommentViewDto | null = await getCommentById(app, comment.id);
+            expect(commentResponse).not.toBeNull();
+            expect(commentResponse).toEqual({
+                id: expect.any(String),
+                content: testCommentData.content,
+                createdAt: expect.any(String),
+                likesInfo: {
+                    likesCount: 0,
+                    dislikesCount: 0,
+                    myStatus: LikeStatus.none,
+                },
+                commentatorInfo: {
+                    userId: testUserId,
+                    userLogin: user.login,
+                },
+            });
+        });
+        it('should not get comment with invalid id GET /comments/:commentId', async () => {
+            const blog: BlogsViewDto = await createBlog(app, adminToken, testBlogData);
+            const post: PostViewDto = await createPost(app, adminToken, {
+                ...testPostData,
+                blogId: blog.id,
+            });
+            const comment = await createComment(app, userAccessToken, post.id, testCommentData);
+            const commentResponse: CommentViewDto | null = await getCommentById(app, comment.id);
+            expect(commentResponse).not.toBeNull();
+            expect(commentResponse).toEqual({
+                id: expect.any(String),
+                content: testCommentData.content,
+                createdAt: expect.any(String),
+                likesInfo: {
+                    likesCount: 0,
+                    dislikesCount: 0,
+                    myStatus: LikeStatus.none,
+                },
+                commentatorInfo: {
+                    userId: testUserId,
+                    userLogin: user.login,
+                },
+            });
+            const invalidId = 'invalid-comment-id';
+            await request(app.getHttpServer())
+                .get(`${COMMENTS_PATH}/${invalidId}`)
+                .expect(HttpStatus.NOT_FOUND);
+        });
+    })
 })

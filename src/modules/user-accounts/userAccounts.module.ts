@@ -22,6 +22,12 @@ import {PasswordRecoveryRepository} from "./infrastructure/password-recovery.rep
 import {NotificationsModule} from "../notifications/notifications.module";
 import {RateLimit, RateLimitSchema} from "./domain/rate-limit.entity";
 import {AppConfigModule} from "../../config.module";
+import {CqrsModule} from "@nestjs/cqrs";
+import {UpdateUserHandler} from "./application/use-cases/update-user.use-case";
+import {CreateUserHandler} from "./application/use-cases/create-user.use-case";
+import {RegisterUserHandler} from "./application/use-cases/register-user.use-case";
+import {UsersFactory} from "./application/users-factory.service";
+import {DeleteUserHandler} from "./application/use-cases/delete-user.use-case";
 // import { SecurityDevicesController } from './api/security-devices.controller';
 // import { SecurityDevicesQueryRepository } from './infrastructure/query/security-devices.query-repository';
 @Global()
@@ -30,6 +36,7 @@ import {AppConfigModule} from "../../config.module";
         // ConfigModule.forRoot({
         //     isGlobal: true, // Чтобы был доступен везде
         // }),
+        CqrsModule,
         JwtModule.registerAsync({
             // secret: 'access-token-secret', //TODO: move to env. will be in the following lessons
             // signOptions: { expiresIn: '5m' }, // Время жизни токена
@@ -91,6 +98,11 @@ import {AppConfigModule} from "../../config.module";
         JwtStrategy,
         EmailService,
         PasswordRecoveryRepository,
+        UpdateUserHandler,
+        CreateUserHandler,
+        RegisterUserHandler,
+        UsersFactory,
+        DeleteUserHandler,
     ],
     exports: [
         UsersRepository,

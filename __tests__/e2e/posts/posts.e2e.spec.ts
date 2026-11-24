@@ -10,11 +10,19 @@ import {LikeStatus} from "../../../src/modules/bloggers-platform/likes/domain/li
 import {PostUpdateDto} from "../../../src/modules/bloggers-platform/posts/dto/post-update.dto";
 import {updatePost} from "../../utils/posts/update-post";
 import request from "supertest";
-import {POSTS_PATH} from "../../../src/core/paths/paths";
+import {COMMENTS_PATH, POSTS_PATH} from "../../../src/core/paths/paths";
 import {clearDatabase, initApp} from "../../helpers/app-helper";
+import {CommentViewDto} from "../../../src/modules/bloggers-platform/comments/api/view-dto/comments.view-dto";
+import {getCommentById} from "../../utils/comments/get-comment-by-id";
+import {UserViewDto} from "../../../src/modules/user-accounts/api/view-dto/user.view-dto";
+import {createUser} from "../../utils/users/create-user";
+import {signTestToken} from "../../utils/auth/sign-test-token";
 
 describe('PostController (e2e)', () => {
     let app: INestApplication;
+    let userAccessToken: string;
+    let user: UserViewDto;
+    let testUserId: string;
 
     const testBlogData: CreateBlogInputDto = {
         name: 'new blog',
@@ -26,12 +34,16 @@ describe('PostController (e2e)', () => {
         shortDescription: 'description blog_post',
         content: 'constent blog_post',
     };
+    const testUserData = { login: 'TestUser', password: 'password123', email: 'test@mail.ru' };
     const adminToken: string = generateBasicAuthToken();
     beforeAll(async () => {
         app = await initApp();
     });
     beforeEach(async () => {
        await clearDatabase(app);
+        user = await createUser(app,adminToken, testUserData);
+        testUserId = user.id || (user as any)._id?.toString();
+        userAccessToken = signTestToken(testUserId);
     });
     it('should create post POST /posts' , async () => {
         const blog: BlogsViewDto = await createBlog(app, adminToken, testBlogData);
@@ -170,12 +182,153 @@ describe('PostController (e2e)', () => {
             .delete(`${POSTS_PATH}/${post.id}`)
             .expect(HttpStatus.UNAUTHORIZED);
     });
-    describe('should update like-status for post POST /posts/:postId/like-status', () => {
-        it('should update like-status for post POST /posts/:postId/like-status', async () => {
+    describe('should update like-status for post PUT /posts/:postId/like-status', () => {
+        it('should update like-status for post PUT /posts/:postId/like-status', async () => {
             const blog: BlogsViewDto = await createBlog(app, adminToken, testBlogData);
             const post: PostViewDto = await createPost(app, adminToken, {
                 ...testPostData,
                 blogId: blog.id,
+            });
+
+            await request(app.getHttpServer())
+                .put(`${POSTS_PATH}/${post.id}/like-status`)
+                .set('Authorization', `Bearer ${userAccessToken}`)
+                .send({likeStatus: LikeStatus.like})
+                .expect(HttpStatus.NO_CONTENT);
+
+            let postResponse: PostViewDto | null = await getPostById(app, post.id, userAccessToken);
+            expect(postResponse).not.toBeNull();
+            expect(postResponse).toEqual({
+                id: expect.any(String),
+                title: testPostData.title,
+                shortDescription: testPostData.shortDescription,
+                content: testPostData.content,
+                blogId: blog.id,
+                blogName: blog.name,
+                createdAt: expect.any(String),
+                extendedLikesInfo: {
+                    likesCount: 1,
+                    dislikesCount: 0,
+                    myStatus: LikeStatus.like,
+                    newestLikes: [
+                        {
+                            addedAt: expect.any(String),
+                            userId: testUserId,
+                            login: user.login,
+                        }
+                    ]
+                }
+            });
+
+            await request(app.getHttpServer())
+                .put(`${POSTS_PATH}/${post.id}/like-status`)
+                .set('Authorization', `Bearer ${userAccessToken}`)
+                .send({likeStatus: LikeStatus.dislike})
+                .expect(HttpStatus.NO_CONTENT);
+
+            postResponse = await getPostById(app, post.id, userAccessToken);
+            expect(postResponse).not.toBeNull();
+            expect(postResponse).toEqual({
+                id: expect.any(String),
+                title: testPostData.title,
+                shortDescription: testPostData.shortDescription,
+                content: testPostData.content,
+                blogId: blog.id,
+                blogName: blog.name,
+                createdAt: expect.any(String),
+                extendedLikesInfo: {
+                    likesCount: 0,
+                    dislikesCount: 1,
+                    myStatus: LikeStatus.dislike,
+                    newestLikes: [],
+                }
+            });
+
+            await request(app.getHttpServer())
+                .put(`${POSTS_PATH}/${post.id}/like-status`)
+                .set('Authorization', `Bearer ${userAccessToken}`)
+                .send({likeStatus: LikeStatus.none})
+                .expect(HttpStatus.NO_CONTENT);
+
+            postResponse = await getPostById(app, post.id, userAccessToken);
+            expect(postResponse).not.toBeNull();
+            expect(postResponse).toEqual({
+                id: expect.any(String),
+                title: testPostData.title,
+                shortDescription: testPostData.shortDescription,
+                content: testPostData.content,
+                blogId: blog.id,
+                blogName: blog.name,
+                createdAt: expect.any(String),
+                extendedLikesInfo: {
+                    likesCount: 0,
+                    dislikesCount: 0,
+                    myStatus: LikeStatus.none,
+                    newestLikes: [],
+                }
+            });
+        });
+        it('should not update like-status for post with invalid token PUT /posts/:postId/like-status (401)', async () => {
+            const invalidToken = 'invalid-token';
+            const blog: BlogsViewDto = await createBlog(app, adminToken, testBlogData);
+            const post: PostViewDto = await createPost(app, adminToken, {
+                ...testPostData,
+                blogId: blog.id,
+            });
+            await request(app.getHttpServer())
+                .put(`${POSTS_PATH}/${post.id}/like-status`)
+                .set('Authorization', `Bearer ${invalidToken}`)
+                .send({likeStatus: LikeStatus.like})
+                .expect(HttpStatus.UNAUTHORIZED);
+
+            let postResponse: PostViewDto | null = await getPostById(app, post.id, userAccessToken);
+            expect(postResponse).not.toBeNull();
+            expect(postResponse).toEqual({
+                id: expect.any(String),
+                title: testPostData.title,
+                shortDescription: testPostData.shortDescription,
+                content: testPostData.content,
+                blogId: blog.id,
+                blogName: blog.name,
+                createdAt: expect.any(String),
+                extendedLikesInfo: {
+                    likesCount: 0,
+                    dislikesCount: 0,
+                    myStatus: LikeStatus.none,
+                    newestLikes: []
+                }
+            });
+        })
+        it('should not update like-status for post with invalid id PUT /posts/:postId/like-status (404)', async () => {
+            const invalidPostId = 'invalid-post-id';
+            const blog: BlogsViewDto = await createBlog(app, adminToken, testBlogData);
+            const post: PostViewDto = await createPost(app, adminToken, {
+                ...testPostData,
+                blogId: blog.id,
+            });
+
+            await request(app.getHttpServer())
+                .put(`${POSTS_PATH}/${invalidPostId}/like-status`)
+                .set('Authorization', `Bearer ${userAccessToken}`)
+                .send({likeStatus: LikeStatus.like})
+                .expect(HttpStatus.NOT_FOUND);
+
+            let postResponse: PostViewDto | null = await getPostById(app, post.id, userAccessToken);
+            expect(postResponse).not.toBeNull();
+            expect(postResponse).toEqual({
+                id: expect.any(String),
+                title: testPostData.title,
+                shortDescription: testPostData.shortDescription,
+                content: testPostData.content,
+                blogId: blog.id,
+                blogName: blog.name,
+                createdAt: expect.any(String),
+                extendedLikesInfo: {
+                    likesCount: 0,
+                    dislikesCount: 0,
+                    myStatus: LikeStatus.none,
+                    newestLikes: []
+                }
             });
         })
     })
